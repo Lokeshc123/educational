@@ -37,6 +37,7 @@ const Profile = () => {
                 <TextInput
                     placeholder={name}
                     style={styles.input}
+                    editable={false}
                     placeholderTextColor={
                         "gray"
                     }
@@ -71,6 +72,7 @@ const Profile = () => {
                 <TextInput
                     placeholder="Joined Since :    20th July 2021"
                     style={styles.input}
+                    editable={false}
                     placeholderTextColor={
                         "gray"
                     }
@@ -78,12 +80,14 @@ const Profile = () => {
                 <TextInput
                     placeholder="Joined Since :    20th July 2021"
                     style={styles.input}
+                    editable={false}
                     placeholderTextColor={
                         "gray"
                     }
                 />
                 <TextInput
                     placeholder="Joined Since :    20th July 2021"
+                    editable={false}
                     style={styles.input}
                     placeholderTextColor={
                         "gray"
