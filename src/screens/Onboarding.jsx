@@ -1,15 +1,32 @@
-import { Dimensions, StyleSheet, Text, View } from 'react-native'
+import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import Onboarding from 'react-native-onboarding-swiper'
 import Lottie from "lottie-react-native";
 import LottieView from 'lottie-react-native';
+import { useNavigation } from '@react-navigation/native';
 const { width, height } = Dimensions.get('screen')
 const OnboardingScreen = () => {
+    const navigation = useNavigation();
+    const handleDone = () => {
+        navigation.navigate('LoginScreen')
+    }
+
+    const doneButton = ({ ...props }) => {
+        return (
+            <TouchableOpacity style={styles.doneButton} {...props}>
+                <Text>Done</Text>
+            </TouchableOpacity>
+        )
+    }
     return (
         <View style={styles.container}>
             <Onboarding
                 containerStyles={{ paddingHorizontal: 15 }}
+                onDone={handleDone}
+                DoneButtonComponent={doneButton}
+                onSkip={handleDone}
+                bottomBarHighlight={false}
                 pages={[
                     {
                         backgroundColor: '#a7f3d0',
@@ -74,4 +91,11 @@ const styles = StyleSheet.create({
         width: width * 0.9,
         height: width,
     },
+    doneButton: {
+        padding: 20,
+        backgroundColor: 'white',
+        borderTopLeftRadius: 100,
+        borderBottomLeftRadius: 100
+
+    }
 })

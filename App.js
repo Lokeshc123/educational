@@ -1,9 +1,14 @@
 import { StatusBar } from "expo-status-bar";
 import { StyleSheet, Text, View } from "react-native";
 import StackNavigator from "./src/navigation/StackNavigator";
+import { UserContext } from "./src/context/UserContext";
 
 export default function App() {
-  return <StackNavigator />;
+  return (
+    <UserContext>
+      <StackNavigator />
+    </UserContext>
+  );
 }
 
 const styles = StyleSheet.create({
