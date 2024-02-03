@@ -1,15 +1,18 @@
 import { Alert, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
-import React, { useState } from 'react'
+import React, { useContext, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import axios from 'axios';
+
 import { Formik } from 'formik';
 import * as Yup from 'yup';
 import { Dropdown } from 'react-native-element-dropdown';
-import { Feather } from '@expo/vector-icons';
+
+import { registerStudent, registerTeacher } from '../api/functions/RegisterFunctions';
+import { UserType } from '../context/UserContext';
 
 const RegisterScreen = () => {
+    const { setUser } = useContext(UserType);
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [username, setUserName] = useState("")
@@ -25,34 +28,31 @@ const RegisterScreen = () => {
     const navigation = useNavigation();
 
 
-    const handleRegister = (values) => {
-        const user = {
+    const handleRegister = async (values) => {
+        let user = 0;
+        const data = {
             name: values.username,
             email: values.email,
             password: values.password,
-            role: value === "Student" ? "student" : "teacher",
         };
 
+        try {
+            if (value === "Student") {
+                user = await registerStudent(data);
+            } else {
+                user = await registerTeacher(data);
+            }
 
-        axios.post('http://192.168.208.128:5000/register', user)
-            .then((res) => {
+            console.log(user);
+
+            if (user === 1) {
                 navigation.navigate("LoginScreen");
-                console.log(res.data);
-                Alert.alert('Success', 'Register Success');
-                setUserName('');
-                setEmail('');
-                setPassword('');
-            })
-            .catch((err) => {
-                if (err.response && err.response.data) {
-                    console.log(err.response.data);
-                    Alert.alert('Error', 'Register Failed');
-                } else {
-                    console.log(err);
-                    Alert.alert('Error', 'An unexpected error occurred');
-                }
-            });
-    }
+            }
+        } catch (err) {
+            console.log(err);
+        }
+    };
+
 
     const validationSchema = Yup.object().shape({
         username: Yup.string().required('Username is required'),

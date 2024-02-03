@@ -1,10 +1,13 @@
 import { Image, StyleSheet, Text, TextInput, Touchable, TouchableOpacity, View } from 'react-native'
-import React, { useState } from 'react'
+import React, { useContext, useState } from 'react'
 import { AntDesign, Entypo } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import Checkbox from 'expo-checkbox';
+import { UserType } from '../context/UserContext';
 
 const Profile = () => {
+    const { user } = useContext(UserType);
+    console.log(user);
     const navigation = useNavigation();
     const [name, setName] = useState("Lokesh Chauhan");
     const [value, setValue] = useState(false);
@@ -25,17 +28,17 @@ const Profile = () => {
                 </View>
             </View>
             <View style={styles.image}>
-                <Image source={{ uri: "https://img.freepik.com/free-photo/man-smiling-with-hands-hips_1187-3017.jpg" }} style={{ width: 168, height: 168, borderRadius: 84 }} />
+                <Image source={{ uri: user.image }} style={{ width: 168, height: 168, borderRadius: 84 }} />
                 <View style={styles.editIcon}>
                     <Entypo name="edit" size={24} color="#077cff" />
                 </View>
             </View>
             <View style={{ height: "10%", width: "100%", top: -300, zIndex: 5, justifyContent: "center", alignItems: "center" }}>
-                <Text style={{ fontSize: 25, fontWeight: "bold" }}>Lokesh Chauhan</Text>
+                <Text style={{ fontSize: 25, fontWeight: "bold" }}>{user.name}</Text>
             </View>
             <View style={styles.data}>
                 <TextInput
-                    placeholder={name}
+                    placeholder={user.name}
                     style={styles.input}
                     editable={false}
                     placeholderTextColor={
@@ -46,31 +49,27 @@ const Profile = () => {
                     <Text style={{ fontSize: 20, margin: 6 }}>Role</Text>
                     <View style={{ flexDirection: "row" }}>
                         <View style={{ flexDirection: "row", margin: 5 }}>
-
                             <Checkbox
                                 style={{ alignSelf: "center" }}
-                                value={value}
-                                onValueChange={() => { setValue(!value) }}
-                                color="#077cff"
+                                value={user.role === "student"}
 
+                                color="#077cff"
                             />
                             <Text style={{ fontSize: 15, margin: 5 }}>Student</Text>
                         </View>
                         <View style={{ flexDirection: "row", margin: 5 }}>
-
                             <Checkbox
                                 style={{ alignSelf: "center" }}
-                                value={!value}
-                                onValueChange={() => { setValue(!value) }}
-                                color="#077cff"
+                                value={user.role === "teacher"}
 
+                                color="#077cff"
                             />
                             <Text style={{ fontSize: 15, margin: 5 }}>Teacher</Text>
                         </View>
                     </View>
                 </View>
                 <TextInput
-                    placeholder="Joined Since :    20th July 2021"
+                    placeholder={`Joined Since :  ${user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'Unknown'}`}
                     style={styles.input}
                     editable={false}
                     placeholderTextColor={
@@ -78,7 +77,7 @@ const Profile = () => {
                     }
                 />
                 <TextInput
-                    placeholder="Joined Since :    20th July 2021"
+                    placeholder={user.email}
                     style={styles.input}
                     editable={false}
                     placeholderTextColor={
@@ -86,7 +85,7 @@ const Profile = () => {
                     }
                 />
                 <TextInput
-                    placeholder="Joined Since :    20th July 2021"
+                    placeholder="Password"
                     editable={false}
                     style={styles.input}
                     placeholderTextColor={
@@ -95,7 +94,7 @@ const Profile = () => {
                 />
             </View>
             <TouchableOpacity style={styles.button}>
-                <Text>Save</Text>
+                <Text style={{ fontSize: 20, color: "white" }}>Save</Text>
             </TouchableOpacity>
         </View>
     )

@@ -10,7 +10,7 @@ import { UserType } from '../../context/UserContext'
 import jwt_decode from 'jwt-decode'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 const StudentHomeScreen = () => {
-    const { selectedCourse, setSelectedCourse, userId, setUserId } = useContext(UserType);
+    const { selectedCourse, setSelectedCourse, userId, setUserId, setUser } = useContext(UserType);
     const getUserId = async () => {
         try {
 
@@ -26,7 +26,23 @@ const StudentHomeScreen = () => {
 
 
     };
+
     getUserId();
+    useEffect(() => {
+        const fetchUserData = async () => {
+            try {
+                const storedUserData = await AsyncStorage.getItem('userData');
+                if (storedUserData) {
+                    const parsedUserData = JSON.parse(storedUserData);
+                    setUser(parsedUserData);
+                }
+            } catch (error) {
+                console.error('Error fetching user data:', error);
+            }
+        };
+
+        fetchUserData();
+    }, []);
     return (
         <SafeAreaView style={styles.container}>
             <Header />

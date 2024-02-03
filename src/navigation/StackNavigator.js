@@ -11,6 +11,7 @@ import StudentHomeScreen from "../screens/student/StudentHomeScreen";
 import TeacherHomeScreen from "../screens/teacher/TeacherHomeScreen";
 import Details from "../screens/student/Details";
 import Profile from "../screens/Profile";
+import NewCourse from "../screens/teacher/NewCourse";
 const StackNavigator = () => {
   const Stack = createNativeStackNavigator();
 
@@ -63,6 +64,13 @@ const StackNavigator = () => {
         <Stack.Screen
           name="Profile"
           component={Profile}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="NewCourse"
+          component={NewCourse}
           options={{
             headerShown: false,
           }}

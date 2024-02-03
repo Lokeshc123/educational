@@ -6,6 +6,7 @@ const UserContext = ({ children }) => {
   const [userId, setUserId] = useState("");
   const [role, setRole] = useState("");
   const [selectedCourse, setSelectedCourse] = useState("");
+  const [user, setUser] = useState({});
   return (
     <UserType.Provider
       value={{
@@ -15,6 +16,8 @@ const UserContext = ({ children }) => {
         setRole,
         selectedCourse,
         setSelectedCourse,
+        user,
+        setUser,
       }}
     >
       {children}

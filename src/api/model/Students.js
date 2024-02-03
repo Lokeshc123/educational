@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const userSchema = new mongoose.Schema({
+const studentSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
@@ -8,7 +8,6 @@ const userSchema = new mongoose.Schema({
   email: {
     type: String,
     unique: true,
-    required: true,
   },
   password: {
     type: String,
@@ -16,15 +15,9 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ["teacher", "student"],
+    default: "student",
   },
-  enrolledCourses: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Course",
-    },
-  ],
-  providedCourses: [
+  coursesEnrolled: [
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Course",
@@ -34,8 +27,12 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: "https://www.gravatar.com/avatar/000?d=mp",
   },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
 });
 
-const User = mongoose.model("User", userSchema);
+const Student = mongoose.model("Student", studentSchema);
 
-module.exports = User;
+module.exports = Student;

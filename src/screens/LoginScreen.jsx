@@ -8,7 +8,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { UserType } from '../context/UserContext';
 
 const LoginScreen = () => {
-    const { role, setRole } = useContext(UserType);
+    const { role, setRole, setUser } = useContext(UserType);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const navigation = useNavigation();
@@ -19,6 +19,7 @@ const LoginScreen = () => {
                 const token = await AsyncStorage.getItem('authToken');
                 const storedRole = await AsyncStorage.getItem('role');
                 setRole(storedRole);
+                console.log(token, storedRole);
 
                 if (token && storedRole) {
                     navigateToHomeScreen(storedRole);
@@ -35,23 +36,23 @@ const LoginScreen = () => {
         try {
             const user = { email, password };
             const response = await axios.post('http://192.168.208.128:5000/login', user);
-            const { token, role: userRole } = response.data;
+            const { token, student, teacher } = response.data;
 
+            const userData = student ? student : teacher;
             AsyncStorage.setItem('authToken', token);
-            AsyncStorage.setItem('role', userRole);
-            setRole(userRole);
+            AsyncStorage.setItem('userData', JSON.stringify(userData));
 
-            setEmail('');
-            setPassword('');
+            setRole(userData.role);
+            setUser(userData);
 
-            navigateToHomeScreen(userRole);
+            navigateToHomeScreen(userData.role);  // Use userData.role directly
         } catch (error) {
             handleLoginError(error);
         }
     };
 
-    const navigateToHomeScreen = (userRole) => {
-        const homeScreen = userRole === 'student' ? 'StudentHomeScreen' : 'TeacherHomeScreen';
+    const navigateToHomeScreen = (role) => {
+        const homeScreen = role === 'student' ? 'StudentHomeScreen' : 'TeacherHomeScreen';
         navigation.replace(homeScreen);
     };
 
