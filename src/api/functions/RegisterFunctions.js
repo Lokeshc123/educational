@@ -4,7 +4,7 @@ import { Alert } from "react-native";
 export const registerTeacher = async (teacher) => {
   try {
     const res = await axios.post(
-      "http://192.168.208.128:5000/register-teacher",
+      "http://192.168.18.10:5000/register-teacher",
       teacher
     );
     Alert.alert("Success", "Register Successful");
@@ -24,7 +24,7 @@ export const registerTeacher = async (teacher) => {
 export const registerStudent = async (student) => {
   try {
     const res = await axios.post(
-      "http://192.168.208.128:5000/register-student",
+      "http://192.168.18.10:5000/register-student",
       student
     );
     Alert.alert("Success", "Register Successful");
@@ -44,7 +44,7 @@ export const registerStudent = async (student) => {
 export const registerCourse = async (course) => {
   try {
     const res = await axios.post(
-      "http://192.168.208.128:5000/add-course",
+      `http://192.168.18.10:5000/teacher/${course.teacherId}/course`,
       course
     );
     Alert.alert("Success", "Course Added Successfull");

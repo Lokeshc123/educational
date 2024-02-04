@@ -85,7 +85,7 @@ app.post("/register-student", async (req, res) => {
     });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Student Creation Failed", error: err }); // Fix typo from 'Teacher' to 'Student'
+    res.status(500).json({ message: "Student Creation Failed", error: err });
   }
 });
 
@@ -94,30 +94,22 @@ const createToken = (userId) => {
     userId: userId,
   };
 
-  // create token
   const token = jwt.sign(payload, "Q$%&*()!@#$%^&*()_+", { expiresIn: "1h" });
   return token;
 };
 
-// endpint for login
-
 app.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
-  // check if the email and password are provided
   if (!email || !password) {
     res.status(400).json({ message: "Email and Password Required" });
     return;
   }
 
   try {
-    // Hash the entered email for comparison with the hashed email in the database
-
-    // check for the student with the hashed email
     const student = await Student.findOne({ email: email });
 
     if (!student) {
-      // check for the teacher with the hashed email
       const teacher = await Teacher.findOne({ email: email });
 
       if (!teacher) {
@@ -125,7 +117,6 @@ app.post("/login", async (req, res) => {
         return;
       }
 
-      // compare the hashed password for teacher
       const passwordMatch = await bcrypt.compare(password, teacher.password);
 
       if (!passwordMatch) {
@@ -133,7 +124,6 @@ app.post("/login", async (req, res) => {
         return;
       }
 
-      // generate and send the token for teacher
       const token = createToken(teacher._id);
       res.status(200).json({
         message: "Login Successful",
@@ -141,7 +131,6 @@ app.post("/login", async (req, res) => {
         teacher: teacher,
       });
     } else {
-      // compare the hashed password for student
       const passwordMatch = await bcrypt.compare(password, student.password);
 
       if (!passwordMatch) {
@@ -149,7 +138,6 @@ app.post("/login", async (req, res) => {
         return;
       }
 
-      // generate and send the token for student
       const token = createToken(student._id);
       res.status(200).json({
         message: "Login Successful",
@@ -163,10 +151,6 @@ app.post("/login", async (req, res) => {
   }
 });
 
-// endpoint to enroll in a course
-
-// Enroll in a course endpoint
-
 app.post("/enroll", async (req, res) => {
   const { courseId, courseTitle, userId } = req.body;
 
@@ -178,7 +162,6 @@ app.post("/enroll", async (req, res) => {
       return;
     }
 
-    // Check if the user is already enrolled in the course
     const isEnrolled = user.enrolledCourses.some(
       (enrolledCourse) => enrolledCourse.courseId.toString() === courseId
     );
@@ -190,7 +173,6 @@ app.post("/enroll", async (req, res) => {
       return;
     }
 
-    // Update the enrolledCourses field of the user
     user.enrolledCourses.push({ courseId, courseTitle });
     await user.save();
 
@@ -202,27 +184,62 @@ app.post("/enroll", async (req, res) => {
 });
 const Course = require("./model/Course");
 
-app.post("/add-course", async (req, res) => {
+app.post("/teacher/:teacherId/course", async (req, res) => {
+  const teacherId = req.params.teacherId;
+  const { title, description, image, price, duration, rating } = req.body;
+
   try {
-    const { title, description, teacher, image, price, duration } = req.body;
+    const teacher = await Teacher.findById(teacherId);
+    if (!teacher) {
+      res.status(404).json({ message: "Teacher Not Found" });
+      return;
+    }
 
     const newCourse = new Course({
       title,
       description,
-      teacher,
       image,
       price,
       duration,
+      rating,
     });
-
-    // Save the course to the database
-    await newCourse.save();
+    const savedCourse = await newCourse.save();
+    teacher.providedCourses.push(savedCourse._id);
+    await teacher.save();
 
     res
-      .status(201)
-      .json({ message: "Course added successfully", course: newCourse });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Internal Server Error" });
+      .status(200)
+      .json({ message: "Course Created Successfully", course: savedCourse });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ message: "Course Creation Failed", error: err.message });
+  }
+});
+
+app.get("/teacher/:teacherId/courses", async (req, res) => {
+  const teacherId = req.params.teacherId;
+
+  try {
+    const teacher = await Teacher.findById(teacherId).populate(
+      "providedCourses"
+    );
+    if (!teacher) {
+      res.status(404).json({ message: "Teacher Not Found" });
+      return;
+    }
+
+    res.status(200).json({ courses: teacher.providedCourses });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to get courses", error: err });
+  }
+});
+
+app.get("/courses", async (req, res) => {
+  try {
+    const courses = await Course.find();
+    res.status(200).json({ courses: courses });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to get courses", error: err });
   }
 });

@@ -1,18 +1,19 @@
 import { FlatList, StyleSheet, Text, View } from 'react-native'
-import React, { useContext, useEffect } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import { UserType } from '../../context/UserContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../../components/Header';
-import { data, student } from '../../data/Data';
+import { student } from '../../data/Data';
 import Course from '../../components/Course';
 import Students from '../../components/Students';
 import { Entypo } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getTeacherCourses } from '../../api/functions/GetData';
 
 const TeacherHomeScreen = () => {
     const { role, user, setUser } = useContext(UserType);
-
+    const [data, setData] = useState([]);
     const navigation = useNavigation();
     useEffect(() => {
         const fetchUserData = async () => {
@@ -29,7 +30,25 @@ const TeacherHomeScreen = () => {
 
         fetchUserData();
     }, []);
-    console.log(user);
+    useEffect(() => {
+        const fetchCourses = async () => {
+            try {
+                if (!user || !user._id) {
+                    console.log("User or user._id is undefined");
+                    return;
+                }
+
+                const response = await getTeacherCourses(user._id);
+                setData(response);
+            } catch (err) {
+                console.log(err);
+            }
+        };
+
+        fetchCourses();
+    }, [user]); // Add user as a dependency to re-run the effect when user changes
+
+
     return (
         <SafeAreaView style={styles.container}>
             <Header />
@@ -41,7 +60,7 @@ const TeacherHomeScreen = () => {
                 <FlatList
                     data={data}
                     renderItem={({ item }) => <Course item={item} />}
-                    keyExtractor={item => item.id}
+                    keyExtractor={item => item._id}
                     horizontal
                     showsHorizontalScrollIndicator={false}
                 />

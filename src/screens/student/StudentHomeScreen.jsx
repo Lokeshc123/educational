@@ -1,5 +1,5 @@
 import { FlatList, StyleSheet, Text, View } from 'react-native'
-import React, { useContext, useEffect } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import Header from "../../components/Header"
 import Course from '../../components/Course'
@@ -9,8 +9,12 @@ import { UserType } from '../../context/UserContext'
 
 import jwt_decode from 'jwt-decode'
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { getCourses } from '../../api/functions/GetData'
 const StudentHomeScreen = () => {
     const { selectedCourse, setSelectedCourse, userId, setUserId, setUser } = useContext(UserType);
+    const [courses, setCourses] = useState([]);
+    const [trendingCourses, setTrendingCourses] = useState([]);
+    const [extraCourses, setExtraCourses] = useState([]);
     const getUserId = async () => {
         try {
 
@@ -43,15 +47,37 @@ const StudentHomeScreen = () => {
 
         fetchUserData();
     }, []);
+    useEffect(() => {
+        const fetchCourses = async () => {
+            try {
+
+
+                const response = await getCourses();
+                setCourses(response);
+
+                const trendingCourses = response.filter(course => course.rating > 4.3);
+                setTrendingCourses(trendingCourses);
+
+                const extraCourses = response.filter(course => course.rating <= 4.3);
+                setExtraCourses(extraCourses);
+
+
+            } catch (err) {
+                console.log(err);
+            }
+        };
+
+        fetchCourses();
+    }, []);
     return (
         <SafeAreaView style={styles.container}>
             <Header />
             <View style={styles.courses}>
                 <Text style={styles.courseTxt}>Trending Course</Text>
                 <FlatList
-                    data={data}
+                    data={trendingCourses}
                     renderItem={({ item }) => <Course item={item} />}
-                    keyExtractor={item => item.id}
+                    keyExtractor={item => item._id}
                     horizontal
                     showsHorizontalScrollIndicator={false}
                 />
@@ -59,9 +85,9 @@ const StudentHomeScreen = () => {
             <View style={styles.extracourses}>
                 <Text style={styles.courseTxt}>You might also like</Text>
                 <FlatList
-                    data={data2}
+                    data={extraCourses}
                     renderItem={({ item }) => <ExtraCourses item={item} />}
-                    keyExtractor={item => item.id}
+                    keyExtractor={item => item._id}
                     showsVerticalScrollIndicator={false}
                     contentContainerStyle={{ paddingBottom: 10 }}
 

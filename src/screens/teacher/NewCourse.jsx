@@ -15,11 +15,13 @@ const NewCourse = () => {
     const [price, setPrice] = useState("");
     const [description, setDescription] = useState("");
     const { user } = useContext(UserType);
-
+    const [rating, setRating] = useState(0);
+    console.log(user._id);
     const handleSave = async () => {
         const newCourse = {
+            teacherId: user._id,
             title: courseName,
-            taughtBy: user.name,
+            rating,
             courseImage,
             duration,
             price,
@@ -53,12 +55,23 @@ const NewCourse = () => {
                         onChangeText={(text) => setCourseName(text)}
                     />
                 </View>
-                <View style={styles.datacontainer}>
+                {/* <View style={styles.datacontainer}>
                     <Text style={styles.label}>Taught By</Text>
                     <TextInput
                         style={styles.input}
-                        placeholder={user.name}
-                        editable={false}
+
+                        value={taughtBy}
+                        onChangeText={(text) => setTaughtBy(text)}
+                    />
+                </View> */}
+                <View style={styles.datacontainer}>
+                    <Text style={styles.label}>Rating</Text>
+                    <TextInput
+                        style={styles.input}
+                        placeholder='Enter Course Rating'
+                        value={rating}
+                        keyboardType='numeric'
+                        onChangeText={(text) => setRating(text)}
                     />
                 </View>
 
@@ -95,6 +108,7 @@ const NewCourse = () => {
                         style={styles.input}
                         placeholder='Enter Course Price'
                         value={price}
+                        keyboardType='numeric'
                         onChangeText={(text) => setPrice(text)}
                     />
                 </View>

@@ -35,11 +35,12 @@ const LoginScreen = () => {
     const handleLogin = async () => {
         try {
             const user = { email, password };
-            const response = await axios.post('http://192.168.208.128:5000/login', user);
+            const response = await axios.post('http://192.168.18.10:5000/login', user);
             const { token, student, teacher } = response.data;
 
             const userData = student ? student : teacher;
             AsyncStorage.setItem('authToken', token);
+            AsyncStorage.setItem('role', userData.role);
             AsyncStorage.setItem('userData', JSON.stringify(userData));
 
             setRole(userData.role);
