@@ -3,13 +3,23 @@ import React, { useContext, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import * as ImagePicker from 'expo-image-picker';
+import { storage } from '../../api/firebase';
+import { addContent } from '../../api/functions/RegisterFunctions';
+import { UserType } from '../../context/UserContext';
+import ProgressBar from '../../components/ProgressBar';
 
 const AddContent = () => {
+    const { user, selectedCourse } = useContext(UserType);
     const [title, setTitle] = useState("");
     const navigation = useNavigation();
     const [imageUrl, setImageUrl] = useState("");
+    const [videoUrl, setVideoUrl] = useState("");
     const [progress, setProgress] = useState(0);
+    const [uploadingImage, setUploadingImage] = useState(false);
+    const [uploadingVideo, setUploadingVideo] = useState(false);
+
     const pickImage = async () => {
         const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -21,8 +31,8 @@ const AddContent = () => {
         if (!result.canceled) {
             try {
 
-                setUploading(true);
-                setBlurVisible(true);
+                setUploadingImage(true);
+
 
                 const response = await fetch(result.assets[0].uri);
                 const blob = await response.blob();
@@ -36,8 +46,8 @@ const AddContent = () => {
                     setProgress(progress.toFixed(2));
 
                     if (progress === 100) {
-                        setBlurVisible(false);
-                        setUploading(false);
+
+                        setUploadingImage(false);
                     }
                 }, (error) => {
                     console.log(error);
@@ -56,6 +66,68 @@ const AddContent = () => {
             }
         }
     };
+    console.log(selectedCourse);
+    const pickVideo = async () => {
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Videos,
+            allowsEditing: true,
+            aspect: [4, 3],
+            quality: 1,
+        });
+
+        if (!result.canceled) {
+            try {
+
+                setUploadingVideo(true);
+
+
+                const response = await fetch(result.assets[0].uri);
+                const blob = await response.blob();
+
+                const storageRef = ref(storage, `Stuff/${new Date().getTime()}`);
+                const uploadTask = uploadBytesResumable(storageRef, blob);
+
+                uploadTask.on('state_changed', (snapshot) => {
+                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                    console.log('Upload is ' + progress + '% done');
+                    setProgress(progress.toFixed(2));
+
+                    if (progress === 100) {
+
+                        setUploadingVideo(false);
+                    }
+                }, (error) => {
+                    console.log(error);
+                }, async () => {
+                    try {
+                        const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                        console.log('File available at', downloadURL);
+                        setVideoUrl(downloadURL);
+
+                    } catch (error) {
+                        console.error('Error getting download URL', error);
+                    }
+                });
+            } catch (error) {
+                console.error('Error fetching image', error);
+            }
+        }
+    };
+
+    const handleSave = async () => {
+        const content = {
+            title: title,
+            thumbnail: imageUrl,
+            video: videoUrl
+        }
+        try {
+            const res = await addContent(content, selectedCourse);
+            console.log(res);
+        }
+        catch (error) {
+            console.error('Error adding document: ', error);
+        }
+    }
 
     return (
         <SafeAreaView style={styles.container}>
@@ -76,9 +148,17 @@ const AddContent = () => {
                 <View style={{ width: "100%", marginBottom: 10 }}>
                     <Text style={styles.label}>Upload Thumbnail Image</Text>
                     <View style={{ justifyContent: "center", alignItems: "center" }}>
-                        <Image source={{ uri: "https://www.lifewire.com/thmb/TRGYpWa4KzxUt1Fkgr3FqjOd6VQ=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/cloud-upload-a30f385a928e44e199a62210d578375a.jpg" }}
-                            style={{ width: 120, height: 120, alignSelf: "center", borderRadius: 16, }} />
-                        <TouchableOpacity style={{ backgroundColor: "black", padding: 10, width: "25%", alignItems: "center", borderRadius: 5, margin: 10 }} >
+                        {uploadingImage ?
+                            (
+                                <View style={{ height: 100, width: 300, borderRadius: 16, backgroundColor: "white", justifyContent: "center", alignItems: "center" }}>
+
+                                    <ProgressBar progress={progress} />
+                                </View>
+                            ) :
+                            <Image source={{ uri: imageUrl ? "https://png.pngtree.com/png-vector/20230330/ourmid/pngtree-click-the-done-button-and-tick-icon-vector-png-image_6674611.png" : "https://www.lifewire.com/thmb/TRGYpWa4KzxUt1Fkgr3FqjOd6VQ=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/cloud-upload-a30f385a928e44e199a62210d578375a.jpg" }}
+                                style={{ width: 120, height: 120, alignSelf: "center", borderRadius: 16, }} />}
+
+                        <TouchableOpacity style={{ backgroundColor: "black", padding: 10, width: "25%", alignItems: "center", borderRadius: 5, margin: 10 }} onPress={() => pickImage()}>
                             <Text style={{ color: "white", fontWeight: "bold" }} >Browse</Text>
                         </TouchableOpacity>
                     </View>
@@ -87,9 +167,17 @@ const AddContent = () => {
                 <View style={{ width: "100% ", marginBottom: 10 }}>
                     <Text style={styles.label}>Upload Video</Text>
                     <View style={{ justifyContent: "center", alignItems: "center" }}>
-                        <Image source={{ uri: "https://www.lifewire.com/thmb/TRGYpWa4KzxUt1Fkgr3FqjOd6VQ=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/cloud-upload-a30f385a928e44e199a62210d578375a.jpg" }}
-                            style={{ width: 120, height: 120, alignSelf: "center", borderRadius: 16 }} />
-                        <TouchableOpacity style={{ backgroundColor: "black", padding: 10, width: "25%", alignItems: "center", borderRadius: 5, marginBottom: 10 }} onPress={() => pickImage()}>
+                        {uploadingVideo ?
+                            (
+                                <View style={{ height: 100, width: 300, borderRadius: 16, backgroundColor: "white", justifyContent: "center", alignItems: "center" }}>
+
+                                    <ProgressBar progress={progress} />
+                                </View>
+                            ) :
+                            <Image source={{ uri: videoUrl ? "https://png.pngtree.com/png-vector/20230330/ourmid/pngtree-click-the-done-button-and-tick-icon-vector-png-image_6674611.png" : "https://www.lifewire.com/thmb/TRGYpWa4KzxUt1Fkgr3FqjOd6VQ=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/cloud-upload-a30f385a928e44e199a62210d578375a.jpg" }}
+                                style={{ width: 120, height: 120, alignSelf: "center", borderRadius: 16, }} />}
+
+                        <TouchableOpacity style={{ backgroundColor: "black", padding: 10, width: "25%", alignItems: "center", borderRadius: 5, marginBottom: 10 }} onPress={() => pickVideo()} >
                             <Text style={{ color: "white", fontWeight: "bold" }} >Browse</Text>
                         </TouchableOpacity>
                     </View>

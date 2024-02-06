@@ -92,3 +92,19 @@ export const getInfo = async (email) => {
     }
   }
 };
+export const getCourseContent = async (courseId) => {
+  try {
+    const response = await axios.get(
+      `http://192.168.18.10:5000/course/${courseId}/content`
+    );
+    return response;
+  } catch (err) {
+    if (err.response && err.response.data) {
+      console.log(err.response.data);
+      return [];
+    } else {
+      console.log(err);
+      return [];
+    }
+  }
+};

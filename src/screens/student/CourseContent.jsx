@@ -1,38 +1,30 @@
-import { Alert, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import React, { useContext, useState, useEffect } from 'react'
-import { UserType } from '../../context/UserContext';
-import { data, data2 } from '../../data/Data';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { FlatList, StyleSheet, Text, View, Image, TouchableOpacity } from 'react-native'
+import React, { useContext, useEffect, useState } from 'react'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { AntDesign } from '@expo/vector-icons';
-import Header from '../../components/Header';
+import { getCourseContent, getCourseDetails } from '../../api/functions/GetData';
+import { UserType } from '../../context/UserContext';
 import { useNavigation } from '@react-navigation/native';
-import axios from 'axios';
-import { getCourseDetails } from '../../api/functions/GetData';
-import { enrollStudent } from '../../api/functions/UpdateData';
+import Content from '../../components/Content';
 
-const Details = ({ item }) => {
-    const { selectedCourse, userId, user } = useContext(UserType);
-    const [details, setDetails] = useState({})
 
+const CourseContent = () => {
+    const { selectedCourse } = useContext(UserType);
+    const [content, setContent] = useState([]);
     const navigation = useNavigation();
-    console.log(selectedCourse);
-
-    const handleDetail = async () => {
-        if (user.role === "teacher") {
-            navigation.navigate("AddContent");
-            return;
-        }
-        else {
+    useEffect(() => {
+        const fetchContent = async () => {
             try {
-                const response = await enrollStudent(user._id, selectedCourse);
-                Alert.alert("", response.message);
-
+                const res = await getCourseContent(selectedCourse);
+                setContent(res.data.content.content);
+            } catch (err) {
+                console.log(err);
             }
-            catch (err) {
-                console.log(err.response.data);
-            }
-        }
-    };
+        };
+        fetchContent();
+    }
+        , []);
+    const [details, setDetails] = useState({});
     useEffect(() => {
         const getDetails = async () => {
             try {
@@ -47,7 +39,6 @@ const Details = ({ item }) => {
     }
         , [selectedCourse]);
     console.log(details);
-
     return (
         <SafeAreaView style={styles.container}>
             <TouchableOpacity style={styles.arrowContainer}>
@@ -61,27 +52,30 @@ const Details = ({ item }) => {
                     <Text style={styles.ratingtxt}>{details.rating}</Text>
                 </View>
             </View>
-            <Text style={styles.duration}>Duration : {details.duration}</Text>
-            <ScrollView >
-                <Text style={styles.description}>{details.description}</Text>
-            </ScrollView>
-            <TouchableOpacity style={styles.btn} onPress={() => handleDetail()}>
-                <Text style={{ fontSize: 20, fontWeight: "bold", color: "white", alignSelf: "center" }}>{user.role === "student" ? "Enroll Now" : "Add Content"}</Text>
-            </TouchableOpacity>
+            <View>
+                <FlatList
+                    data={content}
+                    keyExtractor={(item) => item._id}
+                    renderItem={({ item }) => <Content item={item} />}
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                />
+            </View>
         </SafeAreaView>
     )
 }
 
-export default Details
+export default CourseContent
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
         alignItems: "center",
+        // justifyContent: "space-evenly"
     },
     arrowContainer: {
         position: "absolute",
-        top: 40,
+        top: 20,
         left: 10,
         zIndex: 1,
         backgroundColor: "white",
@@ -90,6 +84,15 @@ const styles = StyleSheet.create({
         borderRadius: 22,
         justifyContent: "center",
         alignItems: "center",
+    },
+    icon: {
+        marginRight: 10
+    },
+    text: {
+        alignSelf: "center",
+        fontSize: 20,
+        fontWeight: "bold",
+        marginLeft: 100,
     },
     image: {
         width: "100%",
@@ -114,25 +117,4 @@ const styles = StyleSheet.create({
         fontWeight: "bold",
         color: "gray"
     },
-    duration: {
-        fontSize: 20,
-        fontWeight: "bold",
-        color: "gray",
-        margin: 10
-    },
-    description: {
-        fontSize: 17,
-        fontWeight: "bold",
-        color: "gray",
-        padding: 15,
-    },
-    btn: {
-        width: "90%",
-        height: 50,
-        backgroundColor: "lightblue",
-        borderRadius: 16,
-        justifyContent: "center",
-        alignItems: "center",
-        marginBottom: 10
-    }
 })

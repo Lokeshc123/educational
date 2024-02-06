@@ -60,3 +60,21 @@ export const registerCourse = async (course) => {
     return 0;
   }
 };
+
+export const addContent = async (content, courseId) => {
+  try {
+    const res = await axios.post(
+      `http://192.168.18.10:5000/course/${courseId}/content`,
+      content
+    );
+    return res;
+  } catch (err) {
+    if (err.response && err.response.data) {
+      console.log(err.response.data);
+      return err.response.data;
+    } else {
+      console.log(err);
+      return err;
+    }
+  }
+};

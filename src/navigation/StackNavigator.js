@@ -15,6 +15,9 @@ import NewCourse from "../screens/teacher/NewCourse";
 import BottomTabsTeacher from "./BottomTabsTeacher";
 import BottomTabsStudent from "./BottomTabsStudent";
 import AddContent from "../screens/teacher/AddContent";
+import CourseContent from "../screens/student/CourseContent";
+
+import VideoPlayer from "../screens/student/VideoPlayer";
 const StackNavigator = () => {
   const Stack = createNativeStackNavigator();
 
@@ -95,6 +98,20 @@ const StackNavigator = () => {
         <Stack.Screen
           name="AddContent"
           component={AddContent}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="Video"
+          component={VideoPlayer}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="CourseContent"
+          component={CourseContent}
           options={{
             headerShown: false,
           }}

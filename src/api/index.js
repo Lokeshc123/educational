@@ -361,7 +361,7 @@ const Content = require("./model/Content");
 // endpoint to add content to a course
 app.post("/course/:courseId/content", async (req, res) => {
   const courseId = req.params.courseId;
-  const { thumbnail, title, videoLink } = req.body;
+  const { thumbnail, title, video } = req.body;
 
   try {
     const course = await Course.findById(courseId);
@@ -374,7 +374,7 @@ app.post("/course/:courseId/content", async (req, res) => {
       course: courseId,
       thumbnail,
       title,
-      videoLink,
+      video,
     });
     const savedContent = await newContent.save();
     course.content.push(savedContent._id);
@@ -387,5 +387,23 @@ app.post("/course/:courseId/content", async (req, res) => {
     res
       .status(500)
       .json({ message: "Failed to add content", error: err.message });
+  }
+});
+
+// endpoint to get all content of a course
+
+app.get("/course/:courseId/content", async (req, res) => {
+  const courseId = req.params.courseId;
+
+  try {
+    const course = await Course.findById(courseId).populate("content");
+    if (!course) {
+      res.status(404).json({ message: "Course Not Found" });
+      return;
+    }
+
+    res.status(200).json({ content: course });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to get content", error: err });
   }
 });

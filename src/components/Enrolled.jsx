@@ -1,11 +1,18 @@
-import { Image, StyleSheet, Text, View } from 'react-native'
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React, { useContext, useEffect, useState } from 'react'
 import { AntDesign } from '@expo/vector-icons';
+import { UserType } from '../context/UserContext';
+import { useNavigation } from '@react-navigation/native';
 
 const Enrolled = ({ item }) => {
-
+    const { setSelectedCourse, selectedCourse } = useContext(UserType);
+    const navigation = useNavigation();
+    const handlePress = () => {
+        setSelectedCourse(item._id);
+        navigation.navigate("CourseContent");
+    }
     return (
-        <View style={{ marginBottom: 10 }}>
+        <TouchableOpacity style={{ marginBottom: 10 }} onPress={() => handlePress()}>
             <View style={styles.container}>
 
                 <Image source={{ uri: item.image }} style={styles.image} />
@@ -19,7 +26,7 @@ const Enrolled = ({ item }) => {
                 </View>
 
             </View >
-        </View>
+        </TouchableOpacity>
     )
 }
 
