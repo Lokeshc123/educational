@@ -53,7 +53,7 @@ const LoginScreen = () => {
     };
 
     const navigateToHomeScreen = (role) => {
-        const homeScreen = role === 'student' ? 'StudentHomeScreen' : 'TeacherHomeScreen';
+        const homeScreen = role === 'student' ? 'Root-Student' : 'Root-Teacher';
         navigation.replace(homeScreen);
     };
 

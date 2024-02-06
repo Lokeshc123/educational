@@ -1,16 +1,81 @@
-import { Image, StyleSheet, Text, TextInput, Touchable, TouchableOpacity, View } from 'react-native'
-import React, { useContext, useState } from 'react'
+import React, { useContext, useState } from 'react';
+import { View, Text, StyleSheet, Image, TextInput, TouchableOpacity } from 'react-native';
 import { AntDesign, Entypo } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import Checkbox from 'expo-checkbox';
+import * as ImagePicker from 'expo-image-picker';
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { BlurView } from 'expo-blur';
+import { storage } from '../api/firebase';
+import { updateProfilePic } from '../api/functions/UpdateData';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { UserType } from '../context/UserContext';
-
 const Profile = () => {
+    const [image, setImage] = useState(null);
+    const [progress, setProgress] = useState(0);
+    const [uploading, setUploading] = useState(false);
+    const [blurVisible, setBlurVisible] = useState(false);
     const { user } = useContext(UserType);
-    console.log(user);
     const navigation = useNavigation();
-    const [name, setName] = useState("Lokesh Chauhan");
-    const [value, setValue] = useState(false);
+
+    const pickImage = async () => {
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.All,
+            allowsEditing: true,
+            aspect: [4, 3],
+            quality: 1,
+        });
+
+        if (!result.canceled) {
+            try {
+
+                setUploading(true);
+                setBlurVisible(true);
+
+                const response = await fetch(result.assets[0].uri);
+                const blob = await response.blob();
+
+                const storageRef = ref(storage, `Stuff/${new Date().getTime()}`);
+                const uploadTask = uploadBytesResumable(storageRef, blob);
+
+                uploadTask.on('state_changed', (snapshot) => {
+                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                    console.log('Upload is ' + progress + '% done');
+                    setProgress(progress.toFixed(2));
+
+                    if (progress === 100) {
+                        setBlurVisible(false);
+                        setUploading(false);
+                    }
+                }, (error) => {
+                    console.log(error);
+                }, async () => {
+                    try {
+                        const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                        console.log('File available at', downloadURL);
+                        updateDatabase(downloadURL);
+                    } catch (error) {
+                        console.error('Error getting download URL', error);
+                    }
+                });
+            } catch (error) {
+                console.error('Error fetching image', error);
+            }
+        }
+    };
+
+    const updateDatabase = async (url) => {
+        try {
+            const res = await updateProfilePic(user._id, url);
+            console.log(res);
+            const updatedUserData = { ...user, image: url };
+            await AsyncStorage.setItem('userData', JSON.stringify(updatedUserData));
+            setImage(url);
+        } catch (err) {
+            console.log(err);
+        }
+    };
+
     return (
         <View style={styles.container}>
             <View style={styles.header}>
@@ -19,24 +84,22 @@ const Profile = () => {
                     <Text style={styles.txt}>Profile</Text>
                 </View>
             </View>
-            <View style={{ flexDirection: "row", top: -80 }}>
-                <View style={styles.circle}>
-
-                </View>
-                <View style={styles.circle}>
-
-                </View>
+            <View style={styles.circleContainer}>
+                <View style={styles.circle}></View>
+                <View style={styles.circle}></View>
             </View>
-            <View style={styles.image}>
-                <Image source={{ uri: user.image }} style={{ width: 168, height: 168, borderRadius: 84 }} />
+            <View style={styles.imageContainer}>
+                <Image source={{ uri: image ? image : user.image }} style={styles.profileImage} />
                 <View style={styles.editIcon}>
-                    <Entypo name="edit" size={24} color="#077cff" />
+                    <Entypo name="edit" size={24} color="#077cff" onPress={() => pickImage()} />
                 </View>
             </View>
-            <View style={{ height: "10%", width: "100%", top: -300, zIndex: 5, justifyContent: "center", alignItems: "center" }}>
-                <Text style={{ fontSize: 25, fontWeight: "bold" }}>{user.name}</Text>
+            <View style={styles.nameContainer}>
+                <Text style={styles.nameText}>{user.name}</Text>
             </View>
             <View style={styles.data}>
+
+
                 <TextInput
                     placeholder={user.name}
                     style={styles.input}
@@ -92,15 +155,14 @@ const Profile = () => {
                         "gray"
                     }
                 />
+
             </View>
-            <TouchableOpacity style={styles.button}>
-                <Text style={{ fontSize: 20, color: "white" }}>Save</Text>
+            <TouchableOpacity style={styles.button} onPress={() => console.log('Save pressed')}>
+                <Text style={styles.buttonText}>Save</Text>
             </TouchableOpacity>
         </View>
-    )
-}
-
-export default Profile
+    );
+};
 
 const styles = StyleSheet.create({
     container: {
@@ -130,6 +192,10 @@ const styles = StyleSheet.create({
         fontSize: 25,
         fontWeight: "bold",
     },
+    circleContainer: {
+        flexDirection: "row",
+        top: -80,
+    },
     circle: {
         width: 300,
         height: 300,
@@ -137,12 +203,17 @@ const styles = StyleSheet.create({
         backgroundColor: "white",
         zIndex: 1,
     },
-    image: {
+    imageContainer: {
         borderRadius: 100,
         position: "absolute",
         top: 120,
         zIndex: 3,
         alignSelf: "center"
+    },
+    profileImage: {
+        width: 168,
+        height: 168,
+        borderRadius: 84
     },
     editIcon: {
         position: "absolute",
@@ -154,6 +225,18 @@ const styles = StyleSheet.create({
         borderRadius: 20,
         padding: 4
     },
+    nameContainer: {
+        height: "10%",
+        width: "100%",
+        top: -300,
+        zIndex: 5,
+        justifyContent: "center",
+        alignItems: "center"
+    },
+    nameText: {
+        fontSize: 25,
+        fontWeight: "bold"
+    },
     data: {
         width: "90%",
         height: "45%",
@@ -161,16 +244,27 @@ const styles = StyleSheet.create({
         top: -300,
         zIndex: 7
     },
+    blurContainer: {
+        width: "100%",
+        height: "100%",
+        borderRadius: 20,
+        backgroundColor: "#000",
+        opacity: 0.5,
+        zIndex: 5
+    },
+    blurImage: {
+        width: "100%",
+        height: "100%",
+        borderRadius: 20
+    },
     input: {
         width: "90%",
         paddingHorizontal: 20,
         height: 60,
         backgroundColor: "#f5f5f5",
         borderRadius: 16,
-
         margin: 10,
         fontSize: 20
-
     },
     button: {
         width: "90%",
@@ -180,5 +274,11 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         top: -285
+    },
+    buttonText: {
+        fontSize: 20,
+        color: "white"
     }
-})
+});
+
+export default Profile;

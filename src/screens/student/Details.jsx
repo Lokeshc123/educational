@@ -7,45 +7,45 @@ import { AntDesign } from '@expo/vector-icons';
 import Header from '../../components/Header';
 import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
+import { getCourseDetails } from '../../api/functions/GetData';
+import { enrollStudent } from '../../api/functions/UpdateData';
 
 const Details = ({ item }) => {
-    const { selectedCourse, userId } = useContext(UserType);
+    const { selectedCourse, userId, user } = useContext(UserType);
     const [details, setDetails] = useState({})
 
     const navigation = useNavigation();
-    const handleEnroll = () => {
-        const course = { userId, courseId: details.title, title: details.title };
-        axios.post('http://192.168.208.128:5000/enroll', course).then((res) => {
-            console.log(res.data);
-            Alert.alert('Success', 'Enrolled Successfully')
-        }
-        ).catch((err) => {
-            if (err.response && err.response.data) {
-                console.log(err.response.data);
-                Alert.alert('Error', 'Enroll Failed');
-            } else {
-                console.log(err);
-                Alert.alert('Error', 'An unexpected error occurred');
-            }
-        });
-
-
-    };
-    useEffect(() => {
-        const foundInData = data.find((course) => course.title === selectedCourse);
-        const foundInData2 = data2.find((course) => course.title === selectedCourse);
-
-        if (foundInData) {
-            setDetails(foundInData);
-        }
-        else if (foundInData2) {
-            setDetails(foundInData2);
+    const handleDetail = async () => {
+        if (user.role === "teacher") {
+            navigation.navigate("AddContent");
+            return;
         }
         else {
-            console.log("Not Found");
+            try {
+                const response = await enrollStudent(userId, selectedCourse);
+                Alert.alert("", response.message);
+
+            }
+            catch (err) {
+                console.log(err.response.data);
+            }
         }
-    }, [selectedCourse]);
+    };
+    useEffect(() => {
+        const getDetails = async () => {
+            try {
+                const response = await getCourseDetails(selectedCourse);
+                setDetails(response);
+            }
+            catch (err) {
+                console.log(err);
+            }
+        }
+        getDetails();
+    }
+        , [selectedCourse]);
     console.log(details);
+
     return (
         <SafeAreaView style={styles.container}>
             <TouchableOpacity style={styles.arrowContainer}>
@@ -63,8 +63,8 @@ const Details = ({ item }) => {
             <ScrollView >
                 <Text style={styles.description}>{details.description}</Text>
             </ScrollView>
-            <TouchableOpacity style={styles.btn} onPress={() => handleEnroll()}>
-                <Text style={{ fontSize: 20, fontWeight: "bold", color: "white", alignSelf: "center" }}>Enroll Now</Text>
+            <TouchableOpacity style={styles.btn} onPress={() => handleDetail()}>
+                <Text style={{ fontSize: 20, fontWeight: "bold", color: "white", alignSelf: "center" }}>{user.role === "student" ? "Enroll Now" : "Add Content"}</Text>
             </TouchableOpacity>
         </SafeAreaView>
     )

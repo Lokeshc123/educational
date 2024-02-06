@@ -89,7 +89,7 @@ const StudentHomeScreen = () => {
                     renderItem={({ item }) => <ExtraCourses item={item} />}
                     keyExtractor={item => item._id}
                     showsVerticalScrollIndicator={false}
-                    contentContainerStyle={{ paddingBottom: 10 }}
+                    contentContainerStyle={{ paddingBottom: 20 }}
 
                 />
             </View>
@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
     },
     courses: {
         width: "100%",
-        height: "32%",
+        height: "33%",
 
     },
     courseTxt: {

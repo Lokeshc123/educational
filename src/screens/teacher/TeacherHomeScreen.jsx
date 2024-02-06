@@ -3,17 +3,19 @@ import React, { useContext, useEffect, useState } from 'react'
 import { UserType } from '../../context/UserContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../../components/Header';
-import { student } from '../../data/Data';
+
 import Course from '../../components/Course';
 import Students from '../../components/Students';
 import { Entypo } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getTeacherCourses } from '../../api/functions/GetData';
+import { getEnrolledStudents, getTeacherCourses } from '../../api/functions/GetData';
+
 
 const TeacherHomeScreen = () => {
     const { role, user, setUser } = useContext(UserType);
     const [data, setData] = useState([]);
+    const [student, setStudent] = useState([]);
     const navigation = useNavigation();
     useEffect(() => {
         const fetchUserData = async () => {
@@ -31,7 +33,7 @@ const TeacherHomeScreen = () => {
         fetchUserData();
     }, []);
     useEffect(() => {
-        const fetchCourses = async () => {
+        const fetchData = async () => {
             try {
                 if (!user || !user._id) {
                     console.log("User or user._id is undefined");
@@ -39,15 +41,17 @@ const TeacherHomeScreen = () => {
                 }
 
                 const response = await getTeacherCourses(user._id);
+                const stu = await getEnrolledStudents(user._id);
+                setStudent(stu);
                 setData(response);
             } catch (err) {
                 console.log(err);
             }
         };
 
-        fetchCourses();
-    }, [user]); // Add user as a dependency to re-run the effect when user changes
-
+        fetchData();
+    }, [user]);
+    console.log(student);
 
     return (
         <SafeAreaView style={styles.container}>
@@ -70,7 +74,7 @@ const TeacherHomeScreen = () => {
                 <FlatList
                     data={student}
                     renderItem={({ item }) => <Students item={item} />}
-                    keyExtractor={item => item.id}
+                    keyExtractor={item => item._id}
                     showsVerticalScrollIndicator={false}
                     contentContainerStyle={{ paddingBottom: 20 }}
                 />

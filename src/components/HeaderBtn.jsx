@@ -13,6 +13,7 @@ const HeaderBtn = (props) => {
         if (props.function === "logout") {
             await AsyncStorage.removeItem('authToken');
             await AsyncStorage.removeItem('role');
+            await AsyncStorage.removeItem('userData');
             navigation.navigate("LoginScreen");
         }
     }

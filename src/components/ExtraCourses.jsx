@@ -7,8 +7,8 @@ const ExtraCourses = ({ item }) => {
     const { selectedCourse, setSelectedCourse } = useContext(UserType);
     const navigation = useNavigation();
     const handlePress = () => {
-        setSelectedCourse(item.title)
-        navigation.navigate("Details", { item: item });
+        setSelectedCourse(item._id)
+        navigation.navigate("Details");
     }
     return (
         <TouchableOpacity style={styles.container} onPress={() => handlePress()}>

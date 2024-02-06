@@ -16,7 +16,7 @@ const NewCourse = () => {
     const [description, setDescription] = useState("");
     const { user } = useContext(UserType);
     const [rating, setRating] = useState(0);
-    console.log(user._id);
+
     const handleSave = async () => {
         const newCourse = {
             teacherId: user._id,

@@ -37,6 +37,12 @@ const courseSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  content: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Content",
+    },
+  ],
 });
 
 const Course = mongoose.model("Course", courseSchema);
